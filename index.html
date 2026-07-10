@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>RunTelemetry · 마라톤 트래커</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0C1420;--panel:#131E2C;--panel2:#182636;--line:#243448;--txt:#E9EEF4;--muted:#78899E;--dim:#4E5E72;
+--cool:#3FC6E8;--mid:#F2B33D;--hot:#EF5B5B;--good:#5BD6A6;
+--mono:'JetBrains Mono',monospace;--disp:'Space Grotesk',sans-serif;--body:'Inter',sans-serif;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--body);line-height:1.5;
+background-image:radial-gradient(900px 500px at 80% -10%,#16273a,transparent 60%);}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 60px}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--muted);text-transform:uppercase}
+h1{font-family:var(--disp);font-weight:700;font-size:26px;margin:6px 0 2px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-family:var(--mono);font-size:12px}
+.gauge-card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:18px;text-align:center}
+.gauge-wrap{position:relative;width:200px;height:200px;margin:4px auto 8px}
+.gauge-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-pct .big{font-family:var(--mono);font-weight:700;font-size:44px;line-height:1}
+.gauge-pct .cap{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:6px}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.mini div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 4px}
+.mini .m-v{font-family:var(--mono);font-weight:600;font-size:16px}
+.mini .m-l{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.sec{font-family:var(--disp);font-weight:500;font-size:15px;margin:26px 0 10px;display:flex;align-items:center;gap:8px}
+.sec .n{font-family:var(--mono);font-size:11px;color:var(--cool)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin:0 0 5px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--txt);
+font-family:var(--mono);font-size:16px;padding:11px 12px;outline:none}
+input:focus{border-color:var(--cool)}
+.btn{width:100%;background:var(--cool);color:#04222c;border:none;border-radius:11px;font-family:var(--disp);font-weight:700;font-size:15px;padding:13px;cursor:pointer}
+.btn:active{opacity:.85}
+.btn2{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.hintline{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px;text-align:center}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th,td{padding:8px 5px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.bar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:3px}
+.bar>span{display:block;height:100%;border-radius:3px}
+.log-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
+.log-item .d{color:var(--muted);width:42px;flex:none}
+.log-item .met{flex:1;display:flex;gap:10px;flex-wrap:wrap}
+.log-item b{color:var(--txt);font-weight:600}
+.log-item .x{color:var(--dim);cursor:pointer;font-size:16px;padding:2px 6px;flex:none}
+.empty{color:var(--dim);font-family:var(--mono);font-size:12px;text-align:center;padding:16px}
+.tools{display:flex;gap:8px;margin-top:12px}
+.tools button{flex:1;font-size:12px;padding:10px}
+.note{color:var(--muted);font-size:12px;line-height:1.6;margin-top:14px}
+.note b{color:var(--txt)}
+.wt-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.wt-cur{font-family:var(--mono);font-weight:700;font-size:22px}
+.wt-chg{font-family:var(--mono);font-size:12px}
+</style></head>
+<body><div class="wrap">
+<div class="eyebrow">RunTelemetry // 11/15 마라톤 · 49세</div>
+<h1>마라톤 트래커</h1>
+<div class="sub" id="sub">18주 · 계획 841km</div>
+
+<div class="gauge-card">
+  <div class="gauge-wrap">
+    <svg viewBox="0 0 200 200" width="200" height="200">
+      <circle cx="100" cy="100" r="86" fill="none" stroke="var(--line)" stroke-width="14"/>
+      <circle id="ring" cx="100" cy="100" r="86" fill="none" stroke="var(--cool)" stroke-width="14"
+        stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="540" stroke-dashoffset="540"/>
+    </svg>
+    <div class="gauge-pct"><div class="big" id="pct">0%</div><div class="cap">누적 달성율</div></div>
+  </div>
+  <div class="mini">
+    <div><div class="m-v" id="m-act">0</div><div class="m-l">실제 KM</div></div>
+    <div><div class="m-v" id="m-plan">0</div><div class="m-l">계획 KM(현재)</div></div>
+    <div><div class="m-v" id="m-runs">0</div><div class="m-l">러닝 수</div></div>
+  </div>
+  <div class="hintline" id="progline">전체 841km 중 0km (0%)</div>
+</div>
+
+<div class="sec"><span class="n">+</span>러닝 기록</div>
+<div class="card">
+  <div class="row">
+    <div><label>날짜</label><input id="i-date" type="date"></div>
+    <div><label>거리 (km)</label><input id="i-dist" type="number" inputmode="decimal" step="0.01" placeholder="10.5"></div>
+  </div>
+  <div class="row">
+    <div><label>시간 (mm:ss)</label><input id="i-time" type="text" inputmode="numeric" placeholder="58:30"></div>
+    <div><label>평균 심박</label><input id="i-hr" type="number" inputmode="numeric" placeholder="140"></div>
+  </div>
+  <div class="row">
+    <div><label>케이던스 (spm)</label><input id="i-cad" type="number" inputmode="numeric" placeholder="174"></div>
+    <div><label>페이스 (자동)</label><input id="i-pace" type="text" readonly placeholder="—"></div>
+  </div>
+  <button class="btn" onclick="addRun()">기록 저장</button>
+  <div class="hintline">시간은 <b>58:30</b> 또는 <b>1:45:20</b> 형식</div>
+</div>
+
+<div class="sec"><span class="n">⚖</span>체중 기록</div>
+<div class="card">
+  <div class="wt-head">
+    <div class="wt-cur" id="wt-cur">— kg</div>
+    <div class="wt-chg" id="wt-chg"></div>
+  </div>
+  <div id="wt-spark"></div>
+  <div class="row" style="margin-top:12px;margin-bottom:0">
+    <div><label>날짜</label><input id="w-date" type="date"></div>
+    <div><label>체중 (kg)</label><input id="w-kg" type="number" inputmode="decimal" step="0.1" placeholder="74.0"></div>
+  </div>
+  <button class="btn btn2" style="margin-top:12px" onclick="addWeight()">체중 저장</button>
+  <div class="hintline">서서히(주 0.3~0.5kg). 롱런·고강도 주엔 무리한 감량 금물.</div>
+</div>
+
+<div class="sec"><span class="n">▮</span>주차별 계획 vs 실제</div>
+<div class="card"><table><thead><tr><th>주</th><th>계획</th><th>실제</th><th style="width:38%">달성</th></tr></thead><tbody id="wtable"></tbody></table></div>
+
+<div class="sec"><span class="n">≡</span>최근 러닝</div>
+<div class="card"><div id="log"></div>
+  <div class="tools">
+    <button class="btn btn2" onclick="exportData()">백업 내보내기</button>
+    <button class="btn btn2" onclick="document.getElementById('imp').click()">복원</button>
+    <input id="imp" type="file" accept="application/json" style="display:none" onchange="importData(event)">
+  </div>
+</div>
+<div class="note"><b>저장:</b> 기록은 이 브라우저에 저장돼. 홈 화면에 추가하면 앱처럼 열려. 가끔 <b>백업 내보내기</b>로 파일 저장 — 기기 바꾸면 <b>복원</b>으로 불러오면 돼.</div>
+</div>
+
+<script>
+const PLAN=[{"wk": 1, "start": "2026-07-13", "planned": 36}, {"wk": 2, "start": "2026-07-20", "planned": 40}, {"wk": 3, "start": "2026-07-27", "planned": 44}, {"wk": 4, "start": "2026-08-03", "planned": 34}, {"wk": 5, "start": "2026-08-10", "planned": 46}, {"wk": 6, "start": "2026-08-17", "planned": 50}, {"wk": 7, "start": "2026-08-24", "planned": 52}, {"wk": 8, "start": "2026-08-31", "planned": 40}, {"wk": 9, "start": "2026-09-07", "planned": 54}, {"wk": 10, "start": "2026-09-14", "planned": 56}, {"wk": 11, "start": "2026-09-21", "planned": 58}, {"wk": 12, "start": "2026-09-28", "planned": 44}, {"wk": 13, "start": "2026-10-05", "planned": 54}, {"wk": 14, "start": "2026-10-12", "planned": 56}, {"wk": 15, "start": "2026-10-19", "planned": 46}, {"wk": 16, "start": "2026-10-26", "planned": 38}, {"wk": 17, "start": "2026-11-02", "planned": 30}, {"wk": 18, "start": "2026-11-09", "planned": 63}];
+const TOTAL=PLAN.reduce((a,b)=>a+b.planned,0);
+const RKEY='rt_runs_v2', WKEY='rt_weights_v2';
+let runs=loadK(RKEY), weights=loadK(WKEY);
+function loadK(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}}
+function saveAll(){try{localStorage.setItem(RKEY,JSON.stringify(runs));localStorage.setItem(WKEY,JSON.stringify(weights));}catch(e){alert('저장 실패 — 백업 내보내기를 사용해줘.')}}
+function parseTime(s){s=(s||'').trim();if(!s)return null;const p=s.split(':').map(Number);if(p.some(isNaN))return null;
+  if(p.length===2)return p[0]*60+p[1];if(p.length===3)return p[0]*3600+p[1]*60+p[2];return null;}
+function paceStr(sec,km){if(!sec||!km)return'—';const s=sec/km;return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');}
+function weekOf(ds){const d=new Date(ds+'T12:00');for(let i=PLAN.length-1;i>=0;i--){if(d>=new Date(PLAN[i].start+'T00:00'))return i;}return -1;}
+
+['i-dist','i-time'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  const km=parseFloat(document.getElementById('i-dist').value),t=parseTime(document.getElementById('i-time').value);
+  document.getElementById('i-pace').value=(km&&t)?paceStr(t,km)+' /km':'';}));
+
+function addRun(){
+  const date=document.getElementById('i-date').value,dist=parseFloat(document.getElementById('i-dist').value),
+    time=parseTime(document.getElementById('i-time').value),hr=parseInt(document.getElementById('i-hr').value)||null,
+    cad=parseInt(document.getElementById('i-cad').value)||null;
+  if(!date){alert('날짜를 입력해줘');return;} if(!dist||dist<=0){alert('거리를 입력해줘');return;}
+  runs.push({date,dist,time,hr,cad});runs.sort((a,b)=>a.date<b.date?1:-1);saveAll();render();
+  ['i-dist','i-time','i-hr','i-cad','i-pace'].forEach(id=>document.getElementById(id).value='');
+}
+function delRun(i){if(confirm('삭제할까?')){runs.splice(i,1);saveAll();render();}}
+function addWeight(){
+  const date=document.getElementById('w-date').value,kg=parseFloat(document.getElementById('w-kg').value);
+  if(!date||!kg){alert('날짜와 체중을 입력해줘');return;}
+  weights=weights.filter(w=>w.date!==date);weights.push({date,kg});weights.sort((a,b)=>a.date<b.date?1:-1);
+  saveAll();render();document.getElementById('w-kg').value='';
+}
+
+function plannedToDate(){const now=new Date();let s=0;
+  for(let i=0;i<PLAN.length;i++){const ws=new Date(PLAN[i].start+'T00:00'),we=new Date(ws);we.setDate(we.getDate()+7);
+    if(now>=we)s+=PLAN[i].planned;else if(now>=ws){s+=PLAN[i].planned*((now-ws)/(7*864e5));break;}else break;}return s;}
+function actualByWeek(){const a=PLAN.map(()=>0);runs.forEach(r=>{const w=weekOf(r.date);if(w>=0)a[w]+=r.dist;});return a;}
+
+function drawSpark(){
+  const host=document.getElementById('wt-spark');host.innerHTML='';
+  if(weights.length<2){host.innerHTML='<div class="empty">체중을 2회 이상 기록하면 추세가 보여.</div>';return;}
+  const w=weights.slice().sort((a,b)=>a.date<b.date?-1:1);
+  const W=560,H=90,pl=6,pr=6,pt=10,pb=10;
+  const ks=w.map(d=>d.kg),k0=Math.min(...ks)-0.5,k1=Math.max(...ks)+0.5;
+  const X=i=>pl+i/(w.length-1)*(W-pl-pr),Y=v=>pt+(1-(v-k0)/(k1-k0))*(H-pt-pb);
+  const NS='http://www.w3.org/2000/svg';const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('width','100%');
+  let dpath=w.map((d,i)=>(i?'L':'M')+X(i)+' '+Y(d.kg)).join(' ');
+  const p=document.createElementNS(NS,'path');p.setAttribute('d',dpath);p.setAttribute('fill','none');
+  p.setAttribute('stroke','var(--good)');p.setAttribute('stroke-width','2.5');svg.appendChild(p);
+  w.forEach((d,i)=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',X(i));c.setAttribute('cy',Y(d.kg));
+    c.setAttribute('r',i===w.length-1?4:2.5);c.setAttribute('fill','var(--good)');svg.appendChild(c);});
+  host.appendChild(svg);
+}
+
+function render(){
+  const actTotal=runs.reduce((a,r)=>a+r.dist,0),pd=plannedToDate(),pct=pd>0?Math.round(actTotal/pd*100):0;
+  document.getElementById('pct').textContent=pct+'%';
+  const ring=document.getElementById('ring'),C=540;ring.style.strokeDashoffset=C*(1-Math.min(pct,100)/100);
+  ring.style.stroke=pct>=100?'var(--good)':pct>=85?'var(--cool)':pct>=60?'var(--mid)':'var(--hot)';
+  document.getElementById('m-act').textContent=actTotal.toFixed(0);
+  document.getElementById('m-plan').textContent=pd.toFixed(0);
+  document.getElementById('m-runs').textContent=runs.length;
+  document.getElementById('progline').textContent='전체 '+TOTAL+'km 중 '+actTotal.toFixed(0)+'km ('+Math.round(actTotal/TOTAL*100)+'%)';
+  document.getElementById('sub').textContent='18주 · 계획 '+TOTAL+'km · 목표 11/15';
+
+  // weight
+  if(weights.length){const w=weights.slice().sort((a,b)=>a.date<b.date?-1:1);
+    const cur=w[w.length-1].kg,first=w[0].kg,chg=cur-first;
+    document.getElementById('wt-cur').textContent=cur.toFixed(1)+' kg';
+    const el=document.getElementById('wt-chg');
+    el.textContent=(chg>0?'+':'')+chg.toFixed(1)+'kg (시작 대비)';
+    el.style.color=chg<0?'var(--good)':chg>0?'var(--mid)':'var(--muted)';
+  }
+  drawSpark();
+
+  const abw=actualByWeek(),tb=document.getElementById('wtable');tb.innerHTML='';
+  const todayW=weekOf(new Date().toISOString().slice(0,10));
+  PLAN.forEach((p,i)=>{if(i>Math.max(todayW,0)+1&&abw[i]===0)return;
+    const a=abw[i],pc=p.planned?Math.round(a/p.planned*100):0;
+    const col=pc>=100?'var(--good)':pc>=70?'var(--cool)':pc>=40?'var(--mid)':'var(--hot)';
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>W'+p.wk+(i===todayW?' <span style="color:var(--cool)">•</span>':'')+'</td><td>'+p.planned+'</td><td>'+(a?a.toFixed(1):'–')+'</td><td><div style="color:'+col+'">'+pc+'%</div><div class="bar"><span style="width:'+Math.min(pc,100)+'%;background:'+col+'"></span></div></td>';
+    tb.appendChild(tr);});
+
+  const log=document.getElementById('log');
+  if(!runs.length){log.innerHTML='<div class="empty">아직 기록이 없어. 위에서 첫 러닝을 입력해봐.</div>';}
+  else{log.innerHTML='';runs.slice(0,15).forEach((r,i)=>{const md=r.date.slice(5).replace('-','/');
+    let met='<b>'+r.dist.toFixed(1)+'km</b>';if(r.time)met+='<span>'+paceStr(r.time,r.dist)+'/km</span>';
+    if(r.hr)met+='<span style="color:var(--mid)">♥'+r.hr+'</span>';if(r.cad)met+='<span style="color:var(--muted)">'+r.cad+'spm</span>';
+    const div=document.createElement('div');div.className='log-item';
+    div.innerHTML='<span class="d">'+md+'</span><span class="met">'+met+'</span><span class="x" onclick="delRun('+i+')">×</span>';
+    log.appendChild(div);});}
+}
+function exportData(){const blob=new Blob([JSON.stringify({runs,weights},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='runtelemetry_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function importData(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);
+    if(Array.isArray(d)){runs=d;}else{runs=d.runs||[];weights=d.weights||[];}
+    runs.sort((a,b)=>a.date<b.date?1:-1);weights.sort((a,b)=>a.date<b.date?1:-1);saveAll();render();alert('복원 완료');}
+  catch(err){alert('불러오기 실패');}};rd.readAsText(f);}
+
+const today=new Date().toISOString().slice(0,10);
+document.getElementById('i-date').value=today;document.getElementById('w-date').value=today;
+render();
+</script>
+</body></html>
