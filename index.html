@@ -144,7 +144,7 @@ font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:20px;curso
     <div><label>거리 (km)</label><input id="i-dist" type="number" inputmode="decimal" step="0.01" placeholder="10.5"></div>
   </div>
   <div class="row">
-    <div><label>시간 (mm:ss)</label><input id="i-time" type="text" inputmode="numeric" placeholder="58:30"></div>
+    <div><label>시간 (숫자만)</label><input id="i-time" type="text" inputmode="numeric" placeholder="5840"></div>
     <div><label>평균 심박</label><input id="i-hr" type="number" inputmode="numeric" placeholder="140"></div>
   </div>
   <div class="row">
@@ -152,7 +152,7 @@ font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:20px;curso
     <div><label>페이스 (자동)</label><input id="i-pace" type="text" readonly placeholder="—"></div>
   </div>
   <button class="btn" onclick="addRun()">기록 저장</button>
-  <div class="hintline">시간은 <b>58:30</b> 또는 <b>1:45:20</b> 형식</div>
+  <div class="hintline">숫자만: <b>5840</b>=58:40 · <b>13015</b>=1:30:15 · <b>45</b>=45초</div>
 </div>
 
 <div class="sec"><span class="n">⚖</span>체중 기록</div>
@@ -192,8 +192,14 @@ const RKEY='rt_runs_v2', WKEY='rt_weights_v2';
 let runs=loadK(RKEY), weights=loadK(WKEY);
 function loadK(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}}
 function saveAll(){try{localStorage.setItem(RKEY,JSON.stringify(runs));localStorage.setItem(WKEY,JSON.stringify(weights));}catch(e){alert('저장 실패 — 백업 내보내기를 사용해줘.')}}
-function parseTime(s){s=(s||'').trim();if(!s)return null;const p=s.split(':').map(Number);if(p.some(isNaN))return null;
-  if(p.length===2)return p[0]*60+p[1];if(p.length===3)return p[0]*3600+p[1]*60+p[2];return null;}
+function parseTime(s){s=(s||'').trim();if(!s)return null;
+  if(s.indexOf(':')>=0){const p=s.split(':').map(Number);if(p.some(isNaN))return null;
+    if(p.length===2)return p[0]*60+p[1];if(p.length===3)return p[0]*3600+p[1]*60+p[2];return null;}
+  const dg=s.replace(/[^0-9]/g,'');if(!dg)return null;
+  const n=dg.padStart(2,'0');
+  const sec=+n.slice(-2), min=+(n.slice(-4,-2)||0), hr=+(n.slice(0,-4)||0);
+  if(sec>59||min>59)return null;
+  return hr*3600+min*60+sec;}
 function paceStr(sec,km){if(!sec||!km)return'—';const s=sec/km;return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');}
 function weekOf(ds){const d=new Date(ds+'T12:00');for(let i=PLAN.length-1;i>=0;i--){if(d>=new Date(PLAN[i].start+'T00:00'))return i;}return -1;}
 
